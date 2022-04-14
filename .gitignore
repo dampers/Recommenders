@@ -1,0 +1,8 @@
+unique_processed_submit/
+preprocessedUsers/
+puser_list.txt
+train_data
+valid_data
+test_data
+*.pkl
+*output*
