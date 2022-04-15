@@ -22,8 +22,9 @@ def data_preprocessing(
     test_num_ngs=9,
     is_history_expanding=True,
 ):
-    instance_output = _create_instance(dir)
-    _create_item2cate(instance_output, dir)
+    # instance_output = _create_instance(dir)
+    instance_output = dir + 'instance_output'
+    _create_item2cate(dir)
     sampled_instance_file = _get_sampled_data(instance_output, sample_rate=sample_rate)
     preprocessed_output = _data_processing(sampled_instance_file)
     if is_history_expanding:
@@ -82,7 +83,7 @@ def _create_instance(dir):
     
     return output_file
 
-def _create_item2cate(instance_file, dir):
+def _create_item2cate(dir):
     logger.info("creating item2cate dict")
     global item2cate
     categoryDF = pd.read_csv(dir + 'category.txt', sep = '\t', encoding='utf8', dtype = 'string')
@@ -96,6 +97,7 @@ def _get_sampled_data(instance_file, sample_rate):
     ns_df = pd.read_csv(instance_file, sep="\t", dtype='string')
     ns_df.columns = ["label", "user_id", "item_id", "timestamp", "cate_id"]
     items_num = ns_df["item_id"].nunique()
+    print(items_num)
     items_with_popular = list(ns_df["item_id"])
     items_sample, count = set(), 0
     while count < int(items_num * sample_rate):
@@ -415,6 +417,7 @@ def _negative_sampling_offline(
             words[3] = item2cate[neg_item]
             write_test.write("\t".join(words) + "\n")
 
-
+# dir = "D:\AlgorithmProblemRecommender\Recommenders\\"
+# data_preprocessing(dir, dir + "train_data", dir + "valid_data", dir + "test_data", dir + "user_vocab.pkl" , dir + "item_vocab.pkl", dir + "cate_vocab.pkl")
 
 

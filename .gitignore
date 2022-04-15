@@ -1,5 +1,8 @@
 unique_processed_submit/
 preprocessedUsers/
+model/
+summary/
+category.txt
 puser_list.txt
 train_data
 valid_data
