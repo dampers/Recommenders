@@ -83,13 +83,15 @@ def _create_instance(dir):
     
     return output_file
 
+# {문제:카테고리} 딕셔너리 생성
 def _create_item2cate(dir):
     logger.info("creating item2cate dict")
     global item2cate
-    categoryDF = pd.read_csv(dir + 'category.txt', sep = '\t', encoding='utf8', dtype = 'string')
+    categoryDF = pd.read_csv(dir + 'category.csv', index_col=0, dtype = 'string')
     categoryDF.columns = ['item_id', 'cate_id']
     item2cate = categoryDF.set_index("item_id")['cate_id'].to_dict()
 
+# 사용자들이 푼 문제 중 sample_rate만큼 선택 후 그 문제들에 해당하는 데이터 추출
 def _get_sampled_data(instance_file, sample_rate):
     logger.info("getting sampled data...")
     global item2cate
@@ -109,6 +111,9 @@ def _get_sampled_data(instance_file, sample_rate):
     ns_df_sample.to_csv(output_file, sep="\t", index=None, header=None)
     return output_file
 
+# 사용자가 푼 문제 개수-2번째까지 : train data
+# 사용자가 푼 문제 개수-1번째 문제: valid data
+# 사용자가 마지막에 푼 문제 : test data
 def _data_processing(input_file):
     logger.info("start data processing...")
     dirs, _ = os.path.split(input_file)
@@ -148,6 +153,8 @@ def _data_processing(input_file):
         i += 1
     return output_file
 
+# train, valid, test 파일 분리하여 추천 모델 입력 형식에 맞는 데이터 생성
+# 입력 형식 : label user_id item_id cate_id timestamp item_ids_history cate_ids_history timestamp_history
 def _data_generating(input_file, train_file, valid_file, test_file, min_sequence=1):
     f_input = open(input_file, "r")
     f_train = open(train_file, "w")
@@ -300,6 +307,10 @@ def _data_generating_no_history_expanding(
             cate_list.append(category)
             dt_list.append(date_time)
 
+# train 데이터에 존재하는 모든 사용자, 문제, 카테고리에 대한 vocab생성
+# user_vocab = {사용자아이디:개수}
+# item_vocab = {문제:개수}
+# cate_vocab = {카테고리:개수}
 def _create_vocab(train_file, user_vocab, item_vocab, cate_vocab):
     f_train = open(train_file, "r")
 
@@ -364,6 +375,7 @@ def _create_vocab(train_file, user_vocab, item_vocab, cate_vocab):
     cPickle.dump(mid_voc, open(item_vocab, "wb"))
     cPickle.dump(cat_voc, open(cate_vocab, "wb"))
 
+# valid와 test데이터에 negative 데이터 추가
 def _negative_sampling_offline(
     instance_input_file, valid_file, test_file, valid_neg_nums=4, test_neg_nums=49
 ):
