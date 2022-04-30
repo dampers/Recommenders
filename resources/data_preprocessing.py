@@ -3,6 +3,8 @@ import pandas as pd
 import random
 import logging
 import _pickle as cPickle
+from datetime import datetime
+import time
 
 from recommenders.utils.constants import SEED
 
@@ -43,40 +45,34 @@ def _create_instance(dir):
     output_file = dir + 'instance_output'
 
     # 사용자 리스트 가져오기
-    usersFile = open(dir + "puser_list.txt", encoding='utf8')
-    users = usersFile.read().splitlines()
-    print(users)
-    usersFile.close()
-    
-    # 각 사용자 데이터에서 제출번호, 아이디, 문제 데이터만 추출하여 csv로 저장
-    index = ['제출번호','아이디','문제']
-    for user in users:
-        file = open(dir + 'unique_processed_submit/' + user + '.txt', encoding='utf8')
-        text = file.read().splitlines()
-        data = []
-        for i in text:
-            data.append(i.split())
-        for i in range(len(data)):
-            data[i] = data[i][:3]  
-        file.close()
-        df = pd.DataFrame(data, columns=index)
-        df.to_csv(dir + "preprocessedUsers/"+user+".csv", encoding='utf-8-sig', index=None)
+    userList = pd.read_csv(dir + 'userList.csv', index_col=0, dtype=str)
+    userList = userList['userId']
 
     # 문제 태그 데이터 가져오기
-    categoryDF = pd.read_csv(dir + 'category.txt', sep = '\t', encoding='utf8', dtype = 'string')
+    categoryDF = pd.read_csv(dir + 'category.csv', index_col=0, dtype=str)
 
-    # 사용자가 푼 문제에 해당하는 태그 붙이기
+    # 각 사용자 데이터에서 제출번호, 아이디, 문제 데이터만 추출하여 사용자가 푼 문제에 해당하는 태그 붙이기
     df = pd.DataFrame()
-    for user in users:
-        userDF = pd.read_csv(dir + "preprocessedUsers/" + user + ".csv", encoding='utf8', dtype = 'string')
-        userDF = pd.merge(userDF,categoryDF,how='left',on='문제')
+    for u in userList:
+        file = dir + 'submits/' + u + '.json'
+        userDF = pd.read_json(file, dtype = str)
+        if len(userDF) == 0: continue
+        sbTimes = []
+        for s in userDF['sbTime']:
+            dt = datetime.strptime(s, '%Y년 %m월 %d일 %H:%M:%S')
+            timestamp = int(time.mktime(dt.timetuple()))
+            sbTimes.append(timestamp)
+        userDF['sbTime'] = sbTimes
+        userDF = userDF[['sbTime','uId','pId']]
+        userDF = pd.merge(userDF,categoryDF,how='left',on='pId')
         df = pd.concat([df, userDF])
+        print(u)
 
     # 라벨 붙이기
-    df['라벨'] = [1 for i in range(len(df))]
+    df['label'] = [1 for i in range(len(df))]
 
-    # '라벨', '아이디', '문제', '제출번호', '카테고리'순으로 열 바꾸기
-    df = df[['라벨', '아이디', '문제', '제출번호', '카테고리']]
+    # '라벨', '아이디', '문제', '제출시간', '카테고리'순으로 열 바꾸기
+    df = df[['label', 'uId', 'pId', 'sbTime', 'category']]
     
     # instance_output 저장 
     df.to_csv(output_file, sep = '\t', index = False)
