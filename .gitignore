@@ -2,6 +2,7 @@ unique_processed_submit/
 preprocessedUsers/
 model/
 summary/
+resources/submits/
 category.txt
 puser_list.txt
 train_data
