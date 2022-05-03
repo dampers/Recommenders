@@ -108,9 +108,8 @@ def _get_sampled_data(instance_file, sample_rate):
     ns_df_sample.to_csv(output_file, sep="\t", index=None, header=None)
     return output_file
 
-# 사용자가 푼 문제 개수-2번째까지 : train data
-# 사용자가 푼 문제 개수-1번째 문제: valid data
-# 사용자가 마지막에 푼 문제 : test data
+# 사용자가 푼 문제 개수-1번째까지 문제: train data
+# 사용자가 마지막에 푼 문제 : valid data
 def _data_processing(input_file):
     logger.info("start data processing...")
     dirs, _ = os.path.split(input_file)
@@ -146,7 +145,7 @@ def _data_processing(input_file):
         i += 1
     return output_file
 
-# train, valid, test 파일 분리하여 추천 모델 입력 형식에 맞는 데이터 생성
+# train, valid 파일 분리하여 추천 모델 입력 형식에 맞는 데이터 생성
 # 입력 형식 : label user_id item_id cate_id timestamp item_ids_history cate_ids_history timestamp_history
 def _data_generating(input_file, train_file, valid_file, min_sequence=1):
     f_input = open(input_file, "r")
@@ -213,6 +212,9 @@ def _data_generating(input_file, train_file, valid_file, min_sequence=1):
             cate_list.append(category)
             dt_list.append(date_time)
 
+# 전체 사용자의 0.01%를 랜덤으로 뽑아 테스트 사용자로 사용  
+# 테스트 사용자에 해당하는 데이터들을 테스트 데이터로 저장
+# train,valid 데이터에서 테스트 사용자에 해당하는 데이터 삭제
 def _create_test_data(train_file, valid_file, test_file):
     f_train = pd.read_csv(train_file, sep='\t', dtype=str, header=None, names=['label', 'uId', 'pId', 'cate', 'time', 'phis', 'chis', 'this'])
     f_valid = pd.read_csv(valid_file, sep='\t', dtype=str, header=None, names=['label', 'uId', 'pId', 'cate', 'time', 'phis', 'chis', 'this'])
