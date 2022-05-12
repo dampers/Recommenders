@@ -212,7 +212,7 @@ def _data_generating(input_file, train_file, valid_file, min_sequence=1):
             cate_list.append(category)
             dt_list.append(date_time)
 
-# 전체 사용자의 0.01%를 랜덤으로 뽑아 테스트 사용자로 사용  
+# 전체 사용자의 0.1%를 랜덤으로 뽑아 테스트 사용자로 사용  
 # 테스트 사용자에 해당하는 데이터들을 테스트 데이터로 저장
 # train,valid 데이터에서 테스트 사용자에 해당하는 데이터 삭제
 def _create_test_data(train_file, valid_file, test_file):
@@ -222,7 +222,7 @@ def _create_test_data(train_file, valid_file, test_file):
     sample_user = set()
     count = 0
     user_num = len(f_valid)
-    while count<int(user_num * 0.01):
+    while count<int(user_num * 0.1):
         random_user = random.choice(users)
         if random_user not in sample_user:
             sample_user.add(random_user)
